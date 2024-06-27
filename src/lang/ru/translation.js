@@ -1,6 +1,13 @@
 export default {
     translation: {
-      form: {
+      posts: {
+        title: 'Посты',
+        button: 'Просмотр',
+      },
+      feeds: {
+        title: 'Фиды',
+      },
+      rss: {
         added: 'RSS успешно загружен',
         invalid: 'Ресурс не содержит валидный RSS',
       },
@@ -9,5 +16,7 @@ export default {
         invalid: 'Ссылка должна быть валидным URL',
         exists: 'RSS уже существует',
       },
+      network_error: 'Ошибка сети',
+      request_timed_out: 'Превышено время запроса',
     },
   };

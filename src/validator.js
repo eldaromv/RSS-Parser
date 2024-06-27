@@ -10,13 +10,13 @@ yup.setLocale({
   },
 });
 
-export default (newUrl, links) => {
+export default (newUrl, urls) => {
   const schema = yup
     .string()
     .trim()
     .required()
     .url()
-    .notOneOf(links);
+    .notOneOf(urls);
   return schema
     .validate(newUrl, { abortEarly: true })
     .then(() => null)
