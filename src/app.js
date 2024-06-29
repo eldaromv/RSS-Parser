@@ -11,6 +11,7 @@ const errorsCodes = {
   ERR_NETWORK: new Error('network_error'),
   ECONNABORTED: new Error('request_timed_out'),
 };
+const defaultTimeout = 5000;
 
 const getRssData = (url) => {
   const objectUrl = new URL(allOriginsProxyUrl);
@@ -48,12 +49,45 @@ const app = (entities, initState, i18nextInstance, axiosInstance) => {
         watchedState.form.isValid = false;
         return;
       }
+      // отправка формы
       watchedState.sendingProcess.status = 'loading';
       feedRequest(url);
     });
   };
 
   entities.form.objectForm.addEventListener('submit', onSubmittedForm);
+
+  const getNewPosts = (posts) => {
+    const initialPostsIds = state.posts.map(({ id }) => id);
+    const initialPostsIdsSet = new Set(initialPostsIds);
+    return posts.filter(({ id }) => !initialPostsIdsSet.has(id));
+  };
+
+  const updatePosts = () => {
+    const { feeds } = state;
+
+    if (!feeds.length < 1) {
+      setTimeout(updatePosts, defaultTimeout);
+      return;
+    }
+    const promises = feeds.map(({ url }) => axiosInstance.get(getRssData(url))
+      .then((response) => {
+        const parsedData = parseRss(response.data.contents);
+        const newPosts = getNewPosts(parsedData.posts);
+        if (!newPosts.length) {
+          return;
+        }
+        watchedState.posts.push(...newPosts);
+      })
+      .catch((error) => error));
+
+    Promise.all(promises)
+      .then(() => {
+        setTimeout(updatePosts, defaultTimeout);
+      });
+  };
+
+  updatePosts();
 };
 
 export default () => {
