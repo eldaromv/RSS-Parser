@@ -34,7 +34,6 @@ const app = (entities, initState, i18nextInstance, axiosInstance) => {
       })
       .catch((error) => {
         watchedState.sendingProcess.errors = errorsCodes[error.code] ?? error;
-        watchedState.sendingProcess.status = 'failed';
       });
   };
 
@@ -49,11 +48,25 @@ const app = (entities, initState, i18nextInstance, axiosInstance) => {
         watchedState.form.isValid = false;
         return;
       }
-      // отправка формы
       watchedState.sendingProcess.status = 'loading';
       feedRequest(url);
     });
   };
+
+  const postExist = (postId) => state.posts.some((post) => post.id === postId);
+
+  const readPost = (e) => {
+    const readPostId = e.target.dataset.id;
+    if (!postExist(readPostId)) {
+      return;
+    }
+    watchedState.openedPosts = [...watchedState.openedPosts, readPostId];
+    watchedState.openedPostInModal = readPostId;
+  };
+
+  if (entities.postsDiv) {
+    entities.postsDiv.addEventListener('click', readPost);
+  }
 
   entities.form.objectForm.addEventListener('submit', onSubmittedForm);
 
@@ -70,6 +83,7 @@ const app = (entities, initState, i18nextInstance, axiosInstance) => {
       setTimeout(updatePosts, defaultTimeout);
       return;
     }
+    
     const promises = feeds.map(({ url }) => axiosInstance.get(getRssData(url))
       .then((response) => {
         const parsedData = parseRss(response.data.contents);
@@ -100,6 +114,7 @@ export default () => {
     feedback: document.querySelector('.feedback'),
     feedsDiv: document.querySelector('.feeds'),
     postsDiv: document.querySelector('.posts'),
+    modal: document.querySelector('#modal'),
   };
 
   const initState = {
@@ -113,6 +128,8 @@ export default () => {
     },
     feeds: [],
     posts: [],
+    openedPosts: [],
+    openedPostInModal: null,
     language,
   };
 

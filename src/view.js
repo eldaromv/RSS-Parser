@@ -84,7 +84,9 @@ const showFeeds = (div, state, i18nextInstance) => {
   });
 };
 
-const setPost = (post, buttonName) => {
+const isViewedPosts = (postId, viewedPosts) => viewedPosts.find((post) => post.id === postId);
+
+const setPost = (post, buttonName, state) => {
   const li = document.createElement('li');
   li.classList.add(
     'list-group-item',
@@ -95,12 +97,13 @@ const setPost = (post, buttonName) => {
     'border-end-0',
   );
   const linkTag = document.createElement('a');
-  linkTag.classList.add('fw-bold');
+  const fontClass = !isViewedPosts(post.id, state.openedPosts) ? 'fw-bold' : 'fw-normal';
+  linkTag.classList.add(fontClass);
   linkTag.setAttribute('href', post.link);
   linkTag.setAttribute('data-id', post.id);
   linkTag.setAttribute('target', '_blank');
   linkTag.setAttribute('rel', 'noopener noreferrer');
-  linkTag.textContent = post.description;
+  linkTag.textContent = post.title;
   li.append(linkTag);
 
   const button = document.createElement('button');
@@ -120,7 +123,26 @@ const showPosts = (div, state, i18nextInstance) => {
   div.append(createCardUl('posts.title', 'ulPosts', i18nextInstance));
   const ul = document.querySelector(`#${entityType}`);
   const buttonName = i18nextInstance.t('posts.button');
-  state.posts.forEach((post) => ul.append(setPost(post, buttonName)));
+  state.posts.forEach((post) => ul.append(setPost(post, buttonName, state)));
+};
+
+const openModal = (post, modalDiv) => {
+  const modal = modalDiv;
+  modal.querySelector('.modal-title').textContent = post.title;
+  modal.querySelector('.modal-body').textContent = post.description;
+};
+
+const showModalPost = (postId, entities, state) => {
+  const post = state.posts.find((currentPost) => currentPost.id === postId);
+  Array.from(entities.postsDiv.querySelector('ul').children)
+    .forEach((li) => {
+      const link = li.firstChild;
+      if (link.getAttribute('data-id') === post.id) {
+        link.classList.remove('fw-bold');
+        link.classList.add('fw-normal', 'link-secondary');
+      }
+    });
+  openModal(post, entities.modal);
 };
 
 export default (state, entities, i18nextInstance) => onChange(state, (path, value) => {
@@ -133,18 +155,23 @@ export default (state, entities, i18nextInstance) => onChange(state, (path, valu
       processHandler(entities, state.sendingProcess.status, i18nextInstance);
       break;
     case 'sendingProcess.errors':
+      showErrorMessage(entities.feedback, state.sendingProcess.errors, i18nextInstance);
+      break;
     case 'form.errors':
       showErrorMessage(entities.feedback, value, i18nextInstance);
       break;
     case 'loading':
-      console.log('loading');
-      console.log(value);
       break;
     case 'feeds':
       showFeeds(entities.feedsDiv, state, i18nextInstance);
       break;
     case 'posts':
       showPosts(entities.postsDiv, state, i18nextInstance);
+      break;
+    case 'openedPosts':
+      break;
+    case 'openedPostInModal':
+      showModalPost(value, entities, state);
       break;
     default:
       throw new Error(`Unknown 'path': ${path}`);
