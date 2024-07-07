@@ -1,7 +1,7 @@
 import i18next from 'i18next';
 import axios from 'axios';
 import watch from './view';
-import validator from './validator';
+import validate from './validator';
 import parseRss from './rssParser';
 import resources from './lang/langs.js';
 
@@ -20,11 +20,11 @@ const getRssData = (url) => {
   return objectUrl.href;
 };
 
-const app = (entities, initState, i18nextInstance, axiosInstance) => {
+const app = (selectors, initState, i18nextInstance, axiosInstance) => {
   const state = { ...initState };
-  const watchedState = watch(state, entities, i18nextInstance);
+  const watchedState = watch(state, selectors, i18nextInstance);
 
-  const feedRequest = (url) => {
+  const getFeedRequest = (url) => {
     axiosInstance.get(getRssData(url))
       .then(({ data }) => {
         const { feed, posts } = parseRss(data.contents);
@@ -42,15 +42,15 @@ const app = (entities, initState, i18nextInstance, axiosInstance) => {
 
     const url = new FormData(e.target).get('url');
     const urls = state.feeds.map((feed) => feed.url);
-    validator(url, urls).then((result) => {
-      if (result) {
-        watchedState.form.errors = result;
+    validate(url, urls)
+      .then(() => {
+        watchedState.sendingProcess.status = 'loading';
+        getFeedRequest(url);
+      })
+      .catch((error) => {
+        watchedState.form.error = error;
         watchedState.form.isValid = false;
-        return;
-      }
-      watchedState.sendingProcess.status = 'loading';
-      feedRequest(url);
-    });
+      });
   };
 
   const postExist = (postId) => state.posts.some((post) => post.id === postId);
@@ -64,12 +64,6 @@ const app = (entities, initState, i18nextInstance, axiosInstance) => {
     watchedState.openedPostInModal = readPostId;
   };
 
-  if (entities.postsDiv) {
-    entities.postsDiv.addEventListener('click', readPost);
-  }
-
-  entities.form.objectForm.addEventListener('submit', onSubmittedForm);
-
   const getNewPosts = (posts) => {
     const initialPostsIds = state.posts.map(({ id }) => id);
     const initialPostsIdsSet = new Set(initialPostsIds);
@@ -79,11 +73,6 @@ const app = (entities, initState, i18nextInstance, axiosInstance) => {
   const updatePosts = () => {
     const { feeds } = state;
 
-    if (!feeds.length < 1) {
-      setTimeout(updatePosts, defaultTimeout);
-      return;
-    }
-    
     const promises = feeds.map(({ url }) => axiosInstance.get(getRssData(url))
       .then((response) => {
         const parsedData = parseRss(response.data.contents);
@@ -101,11 +90,17 @@ const app = (entities, initState, i18nextInstance, axiosInstance) => {
       });
   };
 
+  if (selectors.postsDiv) {
+    selectors.postsDiv.addEventListener('click', readPost);
+  }
+
+  selectors.form.objectForm.addEventListener('submit', onSubmittedForm);
+
   updatePosts();
 };
 
 export default () => {
-  const entities = {
+  const selectors = {
     form: {
       objectForm: document.querySelector('.rss-form'),
       input: document.querySelector('#url-input'),
@@ -120,7 +115,7 @@ export default () => {
   const initState = {
     form: {
       isValid: true,
-      errors: null,
+      error: null,
     },
     sendingProcess: {
       status: 'wait',
@@ -145,7 +140,7 @@ export default () => {
       fallbackLng: initState.language,
     })
     .then(() => {
-      app(entities, initState, i18nextInstance, axiosInstance);
+      app(selectors, initState, i18nextInstance, axiosInstance);
     })
-    .catch((error) => { throw error.message; });
+    .catch((error) => { console.log(`Неизвестная ошибка: ${error.message}`); });
 };

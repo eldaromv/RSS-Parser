@@ -18,7 +18,5 @@ export default (newUrl, urls) => {
     .url()
     .notOneOf(urls);
   return schema
-    .validate(newUrl, { abortEarly: true })
-    .then(() => null)
-    .catch((error) => error);
+    .validate(newUrl, { abortEarly: true });
 };

@@ -3,12 +3,10 @@ import onChange from 'on-change';
 const clearMessage = (paragraph) => {
   paragraph.classList.remove('text-danger');
   paragraph.classList.remove('text-success');
-  // eslint-disable-next-line no-param-reassign
   paragraph.textContent = '';
 };
 
 const showMessage = (paragraph, message) => {
-  // eslint-disable-next-line no-param-reassign
   paragraph.textContent = message;
 };
 
@@ -19,24 +17,37 @@ const showErrorMessage = (paragraph, error, i18nextInstance) => {
   paragraph.classList.add('text-danger');
 };
 
-const processHandler = (entities, processStatus, i18nextInstance) => {
+const disableForm = (rssForm) => {
+  rssForm.input.setAttribute('disabled', '');
+  rssForm.btnSubmit.setAttribute('disabled', '');
+};
+
+const enableForm = (rssForm) => {
+  rssForm.input.removeAttribute('disabled');
+  rssForm.btnSubmit.removeAttribute('disabled');
+};
+
+const handleProcess = (selectors, processStatus, i18nextInstance) => {
   switch (processStatus) {
     case 'wait':
-      clearMessage(entities.feedback);
+      clearMessage(selectors.feedback);
       break;
     case 'added':
-      clearMessage(entities.feedback);
-      entities.feedback.classList.add('text-success');
-      showMessage(entities.feedback, i18nextInstance.t('rss.added'));
-      entities.form.objectForm.reset();
-      entities.form.input.focus();
+      clearMessage(selectors.feedback);
+      selectors.feedback.classList.add('text-success');
+      showMessage(selectors.feedback, i18nextInstance.t('rss.added'));
+      enableForm(selectors.form);
+      selectors.form.objectForm.reset();
+      selectors.form.input.focus();
       break;
     case 'loading':
+      disableForm(selectors.form);
       break;
     case 'failed':
-      entities.feedback.classList.add('text-danger');
-      showMessage(entities.feedback, i18nextInstance.t('rss.invalid'));
-      entities.form.input.focus();
+      selectors.feedback.classList.add('text-danger');
+      showMessage(selectors.feedback, i18nextInstance.t('rss.invalid'));
+      enableForm(selectors.form);
+      selectors.form.input.focus();
       break;
     default:
       throw new Error(`Unknown 'sendingProcess.status': ${processStatus}`);
@@ -60,7 +71,6 @@ const createCardUl = (buttonName, entityType, i18nextInstance) => {
 };
 
 const clearDiv = (div) => {
-  // eslint-disable-next-line no-param-reassign
   div.innerHTML = '';
 };
 
@@ -126,52 +136,52 @@ const showPosts = (div, state, i18nextInstance) => {
   state.posts.forEach((post) => ul.append(setPost(post, buttonName, state)));
 };
 
-const openModal = (post, modalDiv) => {
+const openModal = (postId, posts, modalDiv) => {
   const modal = modalDiv;
+  const post = posts.find((currentPost) => currentPost.id === postId);
   modal.querySelector('.modal-title').textContent = post.title;
   modal.querySelector('.modal-body').textContent = post.description;
+  const button = modal.querySelector('.full-article');
+  button.setAttribute('href', post.link);
 };
 
-const showModalPost = (postId, entities, state) => {
-  const post = state.posts.find((currentPost) => currentPost.id === postId);
-  Array.from(entities.postsDiv.querySelector('ul').children)
-    .forEach((li) => {
-      const link = li.firstChild;
-      if (link.getAttribute('data-id') === post.id) {
-        link.classList.remove('fw-bold');
-        link.classList.add('fw-normal', 'link-secondary');
-      }
-    });
-  openModal(post, entities.modal);
+const showModalPost = (posts, selectors) => {
+  posts.forEach((postId) => {
+    const openedPost = selectors.postsDiv.querySelector(`[data-id="${postId}"]`);
+    openedPost.classList.remove('fw-bold');
+    openedPost.classList.add('fw-normal', 'link-secondary');
+  });
 };
 
-export default (state, entities, i18nextInstance) => onChange(state, (path, value) => {
+export default (state, selectors, i18nextInstance) => onChange(state, (path, value) => {
   switch (path) {
     case 'form.isValid':
-      entities.form.input.classList.toggle('is-invalid', !value);
-      entities.form.input.focus();
+      selectors.form.input.classList.toggle('is-invalid', !value);
+      selectors.form.input.focus();
       break;
     case 'sendingProcess.status':
-      processHandler(entities, state.sendingProcess.status, i18nextInstance);
+      handleProcess(selectors, state.sendingProcess.status, i18nextInstance);
       break;
     case 'sendingProcess.errors':
-      showErrorMessage(entities.feedback, state.sendingProcess.errors, i18nextInstance);
+      showErrorMessage(selectors.feedback, state.sendingProcess.errors, i18nextInstance);
       break;
-    case 'form.errors':
-      showErrorMessage(entities.feedback, value, i18nextInstance);
+    case 'form.error':
+      showErrorMessage(selectors.feedback, value, i18nextInstance);
       break;
     case 'loading':
+      disableForm();
       break;
     case 'feeds':
-      showFeeds(entities.feedsDiv, state, i18nextInstance);
+      showFeeds(selectors.feedsDiv, state, i18nextInstance);
       break;
     case 'posts':
-      showPosts(entities.postsDiv, state, i18nextInstance);
+      showPosts(selectors.postsDiv, state, i18nextInstance);
       break;
     case 'openedPosts':
+      showModalPost(value, selectors);
       break;
     case 'openedPostInModal':
-      showModalPost(value, entities, state);
+      openModal(value, state.posts, selectors.modal);
       break;
     default:
       throw new Error(`Unknown 'path': ${path}`);
