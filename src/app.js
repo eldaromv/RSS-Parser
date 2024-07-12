@@ -123,7 +123,7 @@ export default () => {
     },
     feeds: [],
     posts: [],
-    openedPosts: [],
+    openedPosts: new Set(),
     openedPostInModal: null,
     language,
   };
