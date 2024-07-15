@@ -1,6 +1,6 @@
 const isValidXML = (document) => {
   const errorElement = document.querySelector('parsererror');
-  console.error('Parsing Error: ', errorElement.textContent);
+  console.error('Parsing Error: ', errorElement);
   return !errorElement;
 };
 
