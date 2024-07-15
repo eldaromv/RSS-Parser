@@ -1,9 +1,7 @@
 const isValidXML = (document) => {
   const errorElement = document.querySelector('parsererror');
-  if (errorElement) {
-    return errorElement.textContent;
-  }
-  return null;
+  console.error('Parsing Error: ', errorElement.textContent);
+  return !errorElement;
 };
 
 const getPosts = (xmlDocument) => {
@@ -43,9 +41,8 @@ const getFeed = (xmlDocument) => {
 export default (xml) => {
   const xmlDocument = new DOMParser().parseFromString(xml, 'text/xml');
 
-  const error = isValidXML(xmlDocument);
-  if (error) {
-    throw new Error(`rss.invalid: ${error}`);
+  if (!isValidXML(xmlDocument)) {
+    throw new Error('rss.invalid'); // Добавил, вывод ошибки выше на 2 строке. Теперь ошибка не терятеся, а выводиться в косноль. Если я правильно понял, про что шла речь.
   }
   return {
     feed: getFeed(xmlDocument),
