@@ -1,80 +1,54 @@
-// const isValidXML = (document) => {
-//   const errorElement = document.querySelector('parsererror');
-//   return !errorElement;
-// };
-
-// const getPosts = (xmlDocument) => {
-//   const postElements = xmlDocument.getElementsByTagName('item');
-
-//   if (!postElements.length) {
-//     return [];
-//   }
-
-//   return Array.from(postElements).map((postElement) => {
-//     const pubDate = postElement.querySelector('pubDate');
-//     const title = postElement.querySelector('title');
-//     const description = postElement.querySelector('description');
-//     const link = postElement.querySelector('link');
-//     const id = postElement.querySelector('guid');
-
-//     return {
-//       title: title ? title.textContent : null,
-//       description: description ? description.textContent : null,
-//       link: link ? link.textContent : null,
-//       id: id ? id.textContent.replace(/\D/g, '') : null,
-//       pubDate: pubDate ? Date.parse(pubDate.textContent) : null,
-//     };
-//   });
-// };
-
-// const getFeed = (xmlDocument) => {
-//   const title = xmlDocument.querySelector('title');
-//   const description = xmlDocument.querySelector('description');
-
-//   return {
-//     title: title ? title.textContent : null,
-//     description: description ? description.textContent : null,
-//   };
-// };
-
-// export default (xml) => {
-//   const xmlDocument = new DOMParser().parseFromString(xml, 'text/xml');
-
-//   if (!isValidXML(xmlDocument)) {
-//     throw new Error('rss.invalid');
-//   }
-//   return {
-//     feed: getFeed(xmlDocument),
-//     posts: getPosts(xmlDocument),
-//   };
-// };
-
-const parsRSS = (data) => {
-  const parser = new DOMParser();
-  const rssXML = parser.parseFromString(data, 'text/xml');
-
-  const parserErrors = rssXML.querySelector('parsererror');
-  if (parserErrors !== null) {
-    const error = parserErrors.textContent;
-    throw new Error(error);
+const isValidXML = (document) => {
+  const errorElement = document.querySelector('parsererror');
+  if (errorElement) {
+    return errorElement.textContent;
   }
-
-  const rssItems = rssXML.getElementsByTagName('item');
-
-  const posts = Array.from(rssItems).map((rssItem) => {
-    const postTitle = rssItem.querySelector('title').textContent;
-    const postDescription = rssItem.querySelector('description').textContent;
-    const postHref = rssItem.querySelector('link').textContent;
-
-    return { postTitle, postDescription, postHref };
-  });
-
-  const feedTitle = rssXML.querySelector('channel > title').textContent;
-  const feedDescription = rssXML.querySelector(
-    'channel > description',
-  ).textContent;
-
-  return { feedTitle, feedDescription, posts };
+  return null;
 };
 
-export default parsRSS;
+const getPosts = (xmlDocument) => {
+  const postElements = xmlDocument.getElementsByTagName('item');
+
+  if (!postElements.length) {
+    return [];
+  }
+
+  return Array.from(postElements).map((postElement) => {
+    const pubDate = postElement.querySelector('pubDate');
+    const title = postElement.querySelector('title');
+    const description = postElement.querySelector('description');
+    const link = postElement.querySelector('link');
+    const id = postElement.querySelector('guid');
+
+    return {
+      title: title ? title.textContent : null,
+      description: description ? description.textContent : null,
+      link: link ? link.textContent : null,
+      id: id ? id.textContent.replace(/\D/g, '') : null,
+      pubDate: pubDate ? Date.parse(pubDate.textContent) : null,
+    };
+  });
+};
+
+const getFeed = (xmlDocument) => {
+  const title = xmlDocument.querySelector('title');
+  const description = xmlDocument.querySelector('description');
+
+  return {
+    title: title ? title.textContent : null,
+    description: description ? description.textContent : null,
+  };
+};
+
+export default (xml) => {
+  const xmlDocument = new DOMParser().parseFromString(xml, 'text/xml');
+
+  const error = isValidXML(xmlDocument);
+  if (error) {
+    throw new Error(`rss.invalid: ${error}`);
+  }
+  return {
+    feed: getFeed(xmlDocument),
+    posts: getPosts(xmlDocument),
+  };
+};
