@@ -70,12 +70,13 @@ const createCardUl = (buttonName, entityType, i18nextInstance) => {
   return card;
 };
 
-const showFeeds = (div, state, i18nextInstance) => {
-  div.innerHTML = '';
+const buildFeeds = (feeds, i18nextInstance) => {
   const entityType = 'ulFeeds';
-  div.append(createCardUl('feeds.title', entityType, i18nextInstance));
-  const ul = document.querySelector(`#${entityType}`);
-  state.feeds.forEach((feed) => {
+  const card = createCardUl('feeds.title', entityType, i18nextInstance);
+  const ul = card.querySelector(`#${entityType}`);
+  const fragment = document.createDocumentFragment();
+
+  feeds.forEach((feed) => {
     const li = document.createElement('li');
     li.classList.add('list-group-item', 'border-0', 'border-end-0');
     const h3 = document.createElement('h3');
@@ -86,50 +87,63 @@ const showFeeds = (div, state, i18nextInstance) => {
     tagP.classList.add('m-0', 'small', 'text-black-50');
     tagP.textContent = feed.description;
     li.append(tagP);
-    ul.append(li);
+    fragment.append(li);
   });
+
+  ul.append(fragment);
+  return card;
 };
 
-const isViewedPosts = (postId, viewedPosts) => viewedPosts.find((post) => post.id === postId);
+const buildPosts = (posts, buttonName, state, i18nextInstance) => {
+  const entityType = 'ulPosts';
+  const card = createCardUl('posts.title', entityType, i18nextInstance);
+  const ul = card.querySelector(`#${entityType}`);
+  const fragment = document.createDocumentFragment();
 
-const setPost = (post, buttonName, state) => {
-  const li = document.createElement('li');
-  li.classList.add(
-    'list-group-item',
-    'd-flex',
-    'justify-content-between',
-    'align-items-start',
-    'border-0',
-    'border-end-0',
-  );
-  const linkTag = document.createElement('a');
-  const fontClass = !isViewedPosts(post.id, state.openedPosts) ? 'fw-bold' : 'fw-normal';
-  linkTag.classList.add(fontClass);
-  linkTag.setAttribute('href', post.link);
-  linkTag.setAttribute('data-id', post.id);
-  linkTag.setAttribute('target', '_blank');
-  linkTag.setAttribute('rel', 'noopener noreferrer');
-  linkTag.textContent = post.title;
-  li.append(linkTag);
+  posts.forEach((post) => {
+    const li = document.createElement('li');
+    li.classList.add(
+      'list-group-item',
+      'd-flex',
+      'justify-content-between',
+      'align-items-start',
+      'border-0',
+      'border-end-0',
+    );
+    const linkTag = document.createElement('a');
+    const fontClass = !state.openedPosts.includes(post.id) ? 'fw-bold' : 'fw-normal';
+    linkTag.classList.add(fontClass);
+    linkTag.setAttribute('href', post.link);
+    linkTag.setAttribute('data-id', post.id);
+    linkTag.setAttribute('target', '_blank');
+    linkTag.setAttribute('rel', 'noopener noreferrer');
+    linkTag.textContent = post.title;
+    li.append(linkTag);
 
-  const button = document.createElement('button');
-  button.classList.add('btn', 'btn-outline-primary', 'btn-sm');
-  button.setAttribute('type', 'button');
-  button.setAttribute('data-id', post.id);
-  button.setAttribute('data-bs-toggle', 'modal');
-  button.setAttribute('data-bs-target', '#modal');
-  button.textContent = buttonName;
-  li.append(button);
-  return li;
+    const button = document.createElement('button');
+    button.classList.add('btn', 'btn-outline-primary', 'btn-sm');
+    button.setAttribute('type', 'button');
+    button.setAttribute('data-id', post.id);
+    button.setAttribute('data-bs-toggle', 'modal');
+    button.setAttribute('data-bs-target', '#modal');
+    button.textContent = buttonName;
+    li.append(button);
+
+    fragment.append(li);
+  });
+
+  ul.append(fragment);
+  return card;
+};
+
+const showFeeds = (div, state, i18nextInstance) => {
+  const feedsCard = buildFeeds(state.feeds, i18nextInstance);
+  div.replaceChildren(feedsCard);
 };
 
 const showPosts = (div, state, i18nextInstance) => {
-  div.innerHTML = '';
-  const entityType = 'ulPosts';
-  div.append(createCardUl('posts.title', 'ulPosts', i18nextInstance));
-  const ul = document.querySelector(`#${entityType}`);
-  const buttonName = i18nextInstance.t('posts.button');
-  state.posts.forEach((post) => ul.append(setPost(post, buttonName, state)));
+  const postsCard = buildPosts(state.posts, i18nextInstance.t('posts.button'), state, i18nextInstance);
+  div.replaceChildren(postsCard);
 };
 
 const openModal = (postId, posts, modalDiv) => {
