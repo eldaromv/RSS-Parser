@@ -12,7 +12,7 @@ const setYupLocale = () => {
   });
 };
 
-setYupLocale();
+export { setYupLocale };
 
 export default (newUrl, urls) => {
   const schema = yup
