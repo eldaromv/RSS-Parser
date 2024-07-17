@@ -70,12 +70,8 @@ const createCardUl = (buttonName, entityType, i18nextInstance) => {
   return card;
 };
 
-const clearDiv = (div) => {
-  div.innerHTML = '';
-};
-
 const showFeeds = (div, state, i18nextInstance) => {
-  clearDiv(div);
+  div.innerHTML = '';
   const entityType = 'ulFeeds';
   div.append(createCardUl('feeds.title', entityType, i18nextInstance));
   const ul = document.querySelector(`#${entityType}`);
@@ -128,7 +124,7 @@ const setPost = (post, buttonName, state) => {
 };
 
 const showPosts = (div, state, i18nextInstance) => {
-  clearDiv(div);
+  div.innerHTML = '';
   const entityType = 'ulPosts';
   div.append(createCardUl('posts.title', 'ulPosts', i18nextInstance));
   const ul = document.querySelector(`#${entityType}`);
