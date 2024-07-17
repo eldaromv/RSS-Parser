@@ -1,7 +1,9 @@
 const isValidXML = (document) => {
   const errorElement = document.querySelector('parsererror');
+  if (errorElement) { console.error(errorElement.textContent); }
   return !errorElement;
 };
+// Не знаю правильно ли я понял про ноду. Вывел ошибку в консоль, теперь информация будет там.
 
 const getPosts = (xmlDocument) => {
   const postElements = xmlDocument.getElementsByTagName('item');
