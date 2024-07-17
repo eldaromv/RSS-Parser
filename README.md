@@ -5,10 +5,15 @@
 
 Деплой на Vercel: [https://frontend-project-11-steel-gamma.vercel.app/](https://frontend-project-11-steel-gamma.vercel.app/)
 
-# Descrition
+## Project Rss-Parser 
 
 Rss Reader is a service for aggregating RSS feeds, which makes it convenient to read a variety of sources, for example, blogs. It allows you to add an unlimited number of RSS feeds, updates them itself and adds new entries to the general feed.
 
-# Installation
- - Clone this repository: git clone https://github.com/eldaromv/frontend-project-11.git
- - On the project's root directory: npm ci or make install
+### Installation
+```
+Clone this repository: git clone https://github.com/eldaromv/frontend-project-11.git
+```
+```
+On the project's root directory: npm ci or make install
+```
+
