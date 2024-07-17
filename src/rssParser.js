@@ -17,7 +17,6 @@ const getPosts = (xmlDocument) => {
     const title = postElement.querySelector('title');
     const description = postElement.querySelector('description');
     const link = postElement.querySelector('link');
-    const id = postElement.querySelector('guid');
 
     return {
       title: title ? title.textContent : null,
